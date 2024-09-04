@@ -20,7 +20,8 @@ phases:
       - "echo ## TERRAFORM INIT : Initialize the Terraform Workspace"
       - "terraform init"
       - "echo ## TERRAFORM PLAN : Generate the Terraform Plan"
-      - "terraform plan -out tfapply"
+      - "terraform plan -out tfplan"
+
 artifacts:
   files:
-    - '**/*'
+    - 'tfplan'

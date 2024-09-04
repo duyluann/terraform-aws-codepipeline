@@ -21,7 +21,3 @@ phases:
       # - "echo ## TERRAFORM INIT : Initialize the Terraform Workspace"
       # - "terraform init"
       - "terraform destroy --auto-approve"
-
-artifacts:
-  files:
-    - '**/*'
