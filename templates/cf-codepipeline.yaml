@@ -7,7 +7,7 @@ Parameters:
   GitHubRepositoryName:
     Description: "GitHub repository name"
     Type: String
-    Default: "your-repository-name"
+    Default: "terraform-aws-codepipeline"
 
 Resources:
   # S3 Bucket to store artifacts
@@ -31,6 +31,7 @@ Resources:
       ArtifactStore:
         Type: S3
         Location: !Ref ArtifactBucket
+      PipelineType: V2
       Stages:
         # Source Stage (GitHub)
         - Name: Source
@@ -133,6 +134,20 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:s3:::${ArtifactBucket}"
                   - !Sub "arn:aws:s3:::${ArtifactBucket}/*"
+              - Effect: Allow
+                Action:
+                  - codestar-connections:UseConnection
+                Resource: !Ref GitHubConnection
+              - Effect: Allow
+                Action:
+                  - codebuild:StartBuild
+                  - codebuild:BatchGetBuilds
+                  - codebuild:BatchGetProjects
+                Resource:
+                  - !GetAtt ValidateCodeBuildProject.Arn
+                  - !GetAtt PlanCodeBuildProject.Arn
+                  - !GetAtt ApplyCodeBuildProject.Arn
+                  - !GetAtt DestroyCodeBuildProject.Arn
 
   # Validate CodeBuild Project
   ValidateCodeBuildProject:
@@ -148,8 +163,8 @@ Resources:
       ServiceRole: !GetAtt CodeBuildRole.Arn
       Source:
         Type: CODEPIPELINE
+        BuildSpec: !Sub "templates/buildspec-validate.yaml"
       TimeoutInMinutes: 30
-      BuildSpec: !Sub "templates/buildspec-validate.yaml"
 
   # Plan CodeBuild Project
   PlanCodeBuildProject:
@@ -165,8 +180,8 @@ Resources:
       ServiceRole: !GetAtt CodeBuildRole.Arn
       Source:
         Type: CODEPIPELINE
+        BuildSpec: !Sub "templates/buildspec-plan.yaml"
       TimeoutInMinutes: 30
-      BuildSpec: !Sub "templates/buildspec-plan.yaml"
 
   # Apply CodeBuild Project
   ApplyCodeBuildProject:
@@ -182,8 +197,8 @@ Resources:
       ServiceRole: !GetAtt CodeBuildRole.Arn
       Source:
         Type: CODEPIPELINE
+        BuildSpec: !Sub "templates/buildspec-apply.yaml"
       TimeoutInMinutes: 60
-      BuildSpec: !Sub "templates/buildspec-apply.yaml"
 
   # Destroy CodeBuild Project
   DestroyCodeBuildProject:
@@ -199,8 +214,8 @@ Resources:
       ServiceRole: !GetAtt CodeBuildRole.Arn
       Source:
         Type: CODEPIPELINE
+        BuildSpec: !Sub "templates/buildspec-destroy.yaml"
       TimeoutInMinutes: 30
-      BuildSpec: !Sub "templates/buildspec-destroy.yaml"
 
   # IAM Role for CodeBuild
   CodeBuildRole:
