@@ -1,0 +1,43 @@
+version: 0.2
+
+env:
+  variables:
+    CODE_SRC_DIR: "."
+    SCRIPT_DIR: "./templates/scripts"
+    TF_VERSION: "1.9.5"
+    ENVIRONMENT: "dev"
+    SKIPVALIDATIONFAILURE: "Y"
+    ENABLE_TFVALIDATE: "Y"
+    ENABLE_TFFORMAT: "Y"
+    ENABLE_TFCHECKOV: "Y"
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.9
+    commands:
+      - "curl -s -qL -o terraform.zip https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip"
+      - "unzip -o terraform.zip"
+      - "mv terraform /bin"
+      - "rm terraform.zip"
+      - "yum update -y"
+      - "yum install -y curl jq awscli"
+      - "pip3 install checkov"
+
+  build:
+    commands:
+      - "cd ${CODEBUILD_SRC_DIR}/${CODE_SRC_DIR}"
+      - "echo ## TERRAFORM INIT : Initialize the Terraform Workspace"
+      - "terraform init"
+      - "echo ## VALIDATION : Starting ..."
+      - "mkdir -p ${CODEBUILD_SRC_DIR}/reports"
+      - "/bin/bash ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/tf_ssp_validation.sh ${SKIPVALIDATIONFAILURE} ${ENABLE_TFVALIDATE} ${ENABLE_TFFORMAT} ${ENABLE_TFCHECKOV}"
+      - "cp checkov.xml ${CODEBUILD_SRC_DIR}/reports/checkov.xml"
+artifacts:
+  files:
+    - '**/*'
+reports:
+  checkov-reports:
+    files:
+      - "./reports/checkov.xml"
+    file-format: "JUNITXML"
