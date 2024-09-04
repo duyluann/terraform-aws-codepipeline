@@ -8,23 +8,6 @@ This repository provides a structured template for Terraform projects, enabling 
 
 ```bash
 .
-├── .devcontainer
-│   ├── Dockerfile                  # 🛠️ Defines the development environment for the project
-│   └── devcontainer.json           # 🖥️ Configuration for VSCode Dev Containers
-├── .editorconfig                   # 📝 Editor configuration file to maintain consistent coding styles
-├── .github
-│   ├── ISSUE_TEMPLATE
-│   │   └── issue_template.md       # 🗒️ Template for GitHub issues
-│   ├── dependabot.yml              # 🤖 Configuration for Dependabot to manage dependencies
-│   ├── pull_request_template.md    # 📝 Template for pull requests
-│   └── workflows
-│       ├── stale.yaml              # 🕰️ Workflow to mark stale issues and PRs
-│       └── terraform-aws.yml       # 🚀 CI/CD pipeline for Terraform using GitHub Actions
-├── .gitignore                      # 🚫 Specifies files to be ignored by Git
-├── .pre-commit-config.yaml         # ✅ Configuration for pre-commit hooks to enforce code quality
-├── .terraform.lock.hcl             # 🔒 Lock file to ensure consistent Terraform provider versions
-├── .vscode
-│   └── extensions.json             # 💻 Recommended VSCode extensions for the project
 ├── CODEOWNERS                      # 👥 Defines code owners for the repository
 ├── LICENSE                         # 📜 License for the repository
 ├── README.md                       # 📖 This file
@@ -44,6 +27,13 @@ This repository provides a structured template for Terraform projects, enabling 
 │       ├── outputs.tf              # 📤 Module-specific outputs
 │       └── variables.tf            # 📥 Module-specific variables
 ├── providers.tf                    # 🌐 Provider configurations
+├── templates                       # 📝 Build specifications and validation scripts
+│   ├── buildspec-apply.yaml        # 🛠️ Buildspec for applying Terraform configurations with AWS CodeBuild
+│   ├── buildspec-destroy.yaml      # 💣 Buildspec for destroying resources with AWS CodeBuild
+│   ├── buildspec-plan.yaml         # 🔄 Buildspec for generating a Terraform execution plan using AWS CodeBuild
+│   ├── buildspec-validate.yaml     # ✅ Buildspec for validating the Terraform code with AWS CodeBuild
+│   └── scripts
+│       └── tf-validation.sh        # 🛡️ Shell script to validate Terraform configurations
 └── variables.tf                    # 📥 Input variables for the Terraform configuration
 ```
 
@@ -78,10 +68,7 @@ To get started with development, you can use the pre-configured development cont
 
 ### 🔄 CI/CD
 
-This repository includes a GitHub Actions workflow to automatically validate and apply your Terraform configurations:
-
-- Terraform Validation: Automatically runs terraform validate on pull requests.
-- Stale Issues: Automatically marks issues and pull requests as stale after a period of inactivity.
+This repository uses `AWS CodeBuild` projects with the `buildspec` files under `templates` folder to configure.
 
 ### ✅ Pre-Commit Hooks
 
