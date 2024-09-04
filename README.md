@@ -1,5 +1,7 @@
 # 🚧 Terraform Project Template
 
+https://codebuild.ap-southeast-1.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoiMWxNWFp1TVVjVFE0N0VIeFB2SFNaRCt4clVzallPSWxCYWY2SWtmQ01NelFnbVpVd1RmYnZiN3N4aGRaR0M5Qmh4R1I3a0tpaXdqRTU0L29yOEpZejlVPSIsIml2UGFyYW1ldGVyU3BlYyI6Ilp3dnlVeHk4RTRzT1BPcWIiLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=main
+
 This repository provides a structured template for Terraform projects, enabling consistent and scalable infrastructure deployments. The template is equipped with best practices, CI/CD integration, and environment-specific configurations to streamline your infrastructure management.
 
 ## 📁 Repository Structure

@@ -29,7 +29,7 @@ phases:
       - "terraform init"
       - "echo ## VALIDATION : Starting ..."
       - "mkdir -p ${CODEBUILD_SRC_DIR}/reports"
-      - "/bin/bash ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/tf_ssp_validation.sh ${SKIPVALIDATIONFAILURE} ${ENABLE_TFVALIDATE} ${ENABLE_TFFORMAT} ${ENABLE_TFCHECKOV}"
+      - "/bin/bash ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/tf-validation.sh ${SKIPVALIDATIONFAILURE} ${ENABLE_TFVALIDATE} ${ENABLE_TFFORMAT} ${ENABLE_TFCHECKOV}"
       - "cp checkov.xml ${CODEBUILD_SRC_DIR}/reports/checkov.xml"
 artifacts:
   files:
