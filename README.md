@@ -70,6 +70,22 @@ To get started with development, you can use the pre-configured development cont
 
 This repository uses `AWS CodeBuild` projects with the `buildspec` files under `templates` folder to configure.
 
+### Terraform CodePipeline Deployment
+
+This repository contains the necessary CloudFormation template to create a Terraform-based AWS CodePipeline. Follow the instructions below to deploy the stack directly into your AWS account.
+
+#### Deploy the Stack
+
+To deploy the stack directly into your AWS account, click the button below:
+
+[![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home#/stacks/new?stackName=MyTerraformPipelineStack&templateURL=https://devops4life-cloudformation-templates.s3.ap-southeast-1.amazonaws.com/terraform-aws-codepipeline/cf-codepipeline.yaml)
+
+#### Parameters
+- **GitHubAccountName**: Input your GitHub account name.
+- **GitHubRepositoryName**: Input your repository name.
+
+Make sure to update the parameters when deploying to match your GitHub repository.
+
 ### ✅ Pre-Commit Hooks
 
 Pre-commit hooks are set up to ensure code quality and consistency. To install the pre-commit hooks:
