@@ -11,6 +11,7 @@ Parameters:
   ApprovalEmail:
     Description: "Email address to receive manual approval notifications"
     Type: String
+    Default: "admin@example.com"
 
 Resources:
   # SNS Topic for Approval Notification
