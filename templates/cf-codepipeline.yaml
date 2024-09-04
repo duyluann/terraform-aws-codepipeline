@@ -109,6 +109,7 @@ Resources:
               Configuration:
                 NotificationArn: !Ref ApprovalSNSTopic
               RunOrder: 1
+              TimeoutInMinutes: 30
 
         # Apply Stage
         - Name: Apply
@@ -123,6 +124,20 @@ Resources:
                 - Name: PlanOutput
               Configuration:
                 ProjectName: !Ref ApplyCodeBuildProject
+
+        # Manual Approval Stage
+        - Name: Review
+          Actions:
+            - Name: ReviewAction
+              ActionTypeId:
+                Category: Approval
+                Owner: AWS
+                Provider: Manual
+                Version: '1'
+              Configuration:
+                NotificationArn: !Ref ApprovalSNSTopic
+              RunOrder: 1
+              TimeoutInMinutes: 30
 
         # Destroy Stage
         - Name: Destroy
@@ -176,6 +191,10 @@ Resources:
                   - !GetAtt PlanCodeBuildProject.Arn
                   - !GetAtt ApplyCodeBuildProject.Arn
                   - !GetAtt DestroyCodeBuildProject.Arn
+              - Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource: !Ref ApprovalSNSTopic
 
   # Validate CodeBuild Project
   ValidateCodeBuildProject:
