@@ -1,0 +1,230 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  GitHubAccountName:
+    Description: "GitHub account name"
+    Type: String
+    Default: "your-github-account"
+  GitHubRepositoryName:
+    Description: "GitHub repository name"
+    Type: String
+    Default: "your-repository-name"
+
+Resources:
+  # S3 Bucket to store artifacts
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "terraform-codepipeline-artifacts-${AWS::AccountId}-${AWS::Region}"
+
+  # CodeStar Connection for GitHub
+  GitHubConnection:
+    Type: AWS::CodeStarConnections::Connection
+    Properties:
+      ConnectionName: "GitHubConnection"
+      ProviderType: "GitHub"
+
+  # CodePipeline for Terraform Project
+  CodePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      RoleArn: !GetAtt CodePipelineRole.Arn
+      ArtifactStore:
+        Type: S3
+        Location: !Ref ArtifactBucket
+      Stages:
+        # Source Stage (GitHub)
+        - Name: Source
+          Actions:
+            - Name: SourceAction
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: CodeStarSourceConnection
+                Version: '1'
+              OutputArtifacts:
+                - Name: SourceArtifact
+              Configuration:
+                ConnectionArn: !Ref GitHubConnection
+                FullRepositoryId: !Sub "${GitHubAccountName}/${GitHubRepositoryName}"
+                BranchName: "main"
+              RoleArn: !GetAtt CodePipelineRole.Arn
+
+        # Validate Stage
+        - Name: Validate
+          Actions:
+            - Name: ValidateAction
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: '1'
+              InputArtifacts:
+                - Name: SourceArtifact
+              OutputArtifacts:
+                - Name: ValidateOutput
+              Configuration:
+                ProjectName: !Ref ValidateCodeBuildProject
+
+        # Plan Stage
+        - Name: Plan
+          Actions:
+            - Name: PlanAction
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: '1'
+              InputArtifacts:
+                - Name: SourceArtifact
+              OutputArtifacts:
+                - Name: PlanOutput
+              Configuration:
+                ProjectName: !Ref PlanCodeBuildProject
+
+        # Apply Stage
+        - Name: Apply
+          Actions:
+            - Name: ApplyAction
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: '1'
+              InputArtifacts:
+                - Name: SourceArtifact
+              Configuration:
+                ProjectName: !Ref ApplyCodeBuildProject
+
+        # Destroy Stage
+        - Name: Destroy
+          Actions:
+            - Name: DestroyAction
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: '1'
+              InputArtifacts:
+                - Name: SourceArtifact
+              Configuration:
+                ProjectName: !Ref DestroyCodeBuildProject
+
+  # IAM Role for CodePipeline
+  CodePipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codepipeline.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CodePipelinePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:ListBucket
+                Resource:
+                  - !Sub "arn:aws:s3:::${ArtifactBucket}"
+                  - !Sub "arn:aws:s3:::${ArtifactBucket}/*"
+
+  # Validate CodeBuild Project
+  ValidateCodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: "ValidateTerraform"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: "aws/codebuild/standard:7.0"
+        Type: LINUX_CONTAINER
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Source:
+        Type: CODEPIPELINE
+      TimeoutInMinutes: 30
+      BuildSpec: !Sub "templates/buildspec-validate.yaml"
+
+  # Plan CodeBuild Project
+  PlanCodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: "PlanTerraform"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: "aws/codebuild/standard:7.0"
+        Type: LINUX_CONTAINER
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Source:
+        Type: CODEPIPELINE
+      TimeoutInMinutes: 30
+      BuildSpec: !Sub "templates/buildspec-plan.yaml"
+
+  # Apply CodeBuild Project
+  ApplyCodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: "ApplyTerraform"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: "aws/codebuild/standard:7.0"
+        Type: LINUX_CONTAINER
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Source:
+        Type: CODEPIPELINE
+      TimeoutInMinutes: 60
+      BuildSpec: !Sub "templates/buildspec-apply.yaml"
+
+  # Destroy CodeBuild Project
+  DestroyCodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: "DestroyTerraform"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: "aws/codebuild/standard:7.0"
+        Type: LINUX_CONTAINER
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Source:
+        Type: CODEPIPELINE
+      TimeoutInMinutes: 30
+      BuildSpec: !Sub "templates/buildspec-destroy.yaml"
+
+  # IAM Role for CodeBuild
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CodeBuildPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:*"
+                  - "s3:*"
+                  - "codebuild:*"
+                  - "codepipeline:*"
+                  - "ec2:*"
+                  - "sts:*"
+                  - "cloudwatch:*"
+                Resource: "*"
