@@ -20,8 +20,6 @@ phases:
       - "unzip -o terraform.zip"
       - "mv terraform /bin"
       - "rm terraform.zip"
-      - "yum update -y"
-      - "yum install -y curl jq awscli"
       - "pip3 install checkov"
 
   build:
