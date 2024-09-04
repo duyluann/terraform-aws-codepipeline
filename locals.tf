@@ -1,3 +1,3 @@
 locals {
-  prefix = ""
+  prefix = "aws-terraform-codepipeline"
 }
