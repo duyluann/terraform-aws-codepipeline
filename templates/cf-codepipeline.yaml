@@ -8,8 +8,25 @@ Parameters:
     Description: "GitHub repository name"
     Type: String
     Default: "terraform-aws-codepipeline"
+  ApprovalEmail:
+    Description: "Email address to receive manual approval notifications"
+    Type: String
 
 Resources:
+  # SNS Topic for Approval Notification
+  ApprovalSNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: "ManualApprovalTopic"
+
+  # SNS Subscription for Email Notification
+  ApprovalEmailSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Endpoint: !Ref ApprovalEmail
+      Protocol: email
+      TopicArn: !Ref ApprovalSNSTopic
+
   # S3 Bucket to store artifacts
   ArtifactBucket:
     Type: AWS::S3::Bucket
@@ -61,8 +78,6 @@ Resources:
                 Version: '1'
               InputArtifacts:
                 - Name: SourceArtifact
-              OutputArtifacts:
-                - Name: ValidateOutput
               Configuration:
                 ProjectName: !Ref ValidateCodeBuildProject
 
@@ -82,6 +97,19 @@ Resources:
               Configuration:
                 ProjectName: !Ref PlanCodeBuildProject
 
+        # Manual Approval Stage
+        - Name: ManualApproval
+          Actions:
+            - Name: ApprovalAction
+              ActionTypeId:
+                Category: Approval
+                Owner: AWS
+                Provider: Manual
+                Version: '1'
+              Configuration:
+                NotificationArn: !Ref ApprovalSNSTopic
+              RunOrder: 1
+
         # Apply Stage
         - Name: Apply
           Actions:
@@ -92,7 +120,7 @@ Resources:
                 Provider: CodeBuild
                 Version: '1'
               InputArtifacts:
-                - Name: SourceArtifact
+                - Name: PlanOutput
               Configuration:
                 ProjectName: !Ref ApplyCodeBuildProject
 
@@ -106,7 +134,7 @@ Resources:
                 Provider: CodeBuild
                 Version: '1'
               InputArtifacts:
-                - Name: SourceArtifact
+                - Name: PlanOutput
               Configuration:
                 ProjectName: !Ref DestroyCodeBuildProject
 
