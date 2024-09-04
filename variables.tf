@@ -12,4 +12,5 @@ variable "env" {
 variable "prefix" {
   description = "The prefix for all resource's names"
   type        = string
+  default     = "aws-terraform-codepipeline"
 }
