@@ -78,7 +78,7 @@ This repository contains the necessary CloudFormation template to create a Terra
 
 To deploy the stack directly into your AWS account, click the button below:
 
-[![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home#/stacks/new?stackName=MyTerraformPipelineStack&templateURL=https://devops4life-cloudformation-templates.s3.ap-southeast-1.amazonaws.com/terraform-aws-codepipeline/cf-codepipeline.yaml)
+[![Launch Stack](https://devops4life-cloudformation-templates.s3.ap-southeast-1.amazonaws.com/launch-stack-aws.png)](https://console.aws.amazon.com/cloudformation/home#/stacks/new?stackName=MyTerraformPipelineStack&templateURL=https://devops4life-cloudformation-templates.s3.ap-southeast-1.amazonaws.com/terraform-aws-codepipeline/cf-codepipeline.yaml)
 
 #### Parameters
 - **GitHubAccountName**: Input your GitHub account name.
