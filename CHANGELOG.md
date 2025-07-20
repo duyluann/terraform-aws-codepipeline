@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+# [1.2.0](https://github.com/duyluann/terraform-aws-codepipeline/compare/v1.1.0...v1.2.0) (2025-07-20)
+
+
+### Features
+
+* auto merge PR from bot ([44c7908](https://github.com/duyluann/terraform-aws-codepipeline/commit/44c7908520f243c787594280187f0fb7b72f664b))
+
 # [1.1.0](https://github.com/duyluann/terraform-aws-codepipeline/compare/v1.0.1...v1.1.0) (2025-01-18)
 
 
