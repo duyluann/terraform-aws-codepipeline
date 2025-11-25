@@ -1,51 +1,60 @@
-# Use an official Node.js image as a base
-FROM mcr.microsoft.com/vscode/devcontainers/base:ubuntu-22.04
+FROM duyluann/terraform-toolkit:latest
 
-# Install dependencies
+# Switch to root for system modifications
+USER root
+
+# Set bash as the default shell for better compatibility with devcontainer features
+SHELL ["/bin/bash", "-c"]
+
+# Configure bash as default shell and create symlink
+# Most images already have bash, we just need to ensure it's the default
+RUN ln -sf /bin/bash /bin/sh && \
+    if [ -f /etc/passwd ]; then \
+      sed -i 's|:/bin/sh$|:/bin/bash|g' /etc/passwd || true; \
+    fi
+
+# Set default shell environment
+ENV SHELL=/bin/bash
+
+# Install dependencies for cloud CLIs
 RUN apt-get update && apt-get install -y \
     curl \
-    gnupg2 \
-    software-properties-common \
     unzip \
-    ca-certificates  # Install CA certificates
+    gnupg \
+    lsb-release \
+    apt-transport-https \
+    ca-certificates \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install AWS CLI
-RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
-    unzip awscliv2.zip && \
-    ./aws/install && \
-    rm -rf awscliv2.zip aws
+# Install Azure CLI (if not already installed)
+RUN if ! command -v az &> /dev/null; then \
+        echo "Installing Azure CLI..." && \
+        curl -sL https://aka.ms/InstallAzureCLIDeb | bash; \
+    else \
+        echo "Azure CLI already installed, skipping..."; \
+    fi
 
-# Install eksctl
-RUN curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/v0.155.0/eksctl_Linux_amd64.tar.gz" | tar xz -C /tmp && \
-    sudo mv /tmp/eksctl /usr/local/bin
+# Install Google Cloud SDK (if not already installed)
+RUN if ! command -v gcloud &> /dev/null; then \
+        echo "Installing Google Cloud SDK..." && \
+        echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | \
+        tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
+        curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | \
+        gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg && \
+        apt-get update && apt-get install -y google-cloud-cli && \
+        rm -rf /var/lib/apt/lists/*; \
+    else \
+        echo "Google Cloud SDK already installed, skipping..."; \
+    fi
 
-# Install Terraform
-RUN curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add - && \
-    apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main" && \
-    apt-get update && \
-    apt-get install -y terraform
+# Create credential directories for multi-cloud support
+RUN mkdir -p /home/tf-user/.aws \
+    && mkdir -p /home/tf-user/.azure \
+    && mkdir -p /home/tf-user/.config/gcloud \
+    && chown -R tf-user:tf-user /home/tf-user/.aws \
+    && chown -R tf-user:tf-user /home/tf-user/.azure \
+    && chown -R tf-user:tf-user /home/tf-user/.config
 
-# Install kubectl
-RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
-    install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && \
-    rm kubectl
-
-# Install kubectx and kubens
-RUN git clone https://github.com/ahmetb/kubectx /opt/kubectx && \
-    ln -s /opt/kubectx/kubectx /usr/local/bin/kubectx && \
-    ln -s /opt/kubectx/kubens /usr/local/bin/kubens
-
-# Install Helm
-RUN curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-
-# Set up alias for kubectl globally
-RUN echo 'alias k=kubectl' >> /etc/bash.bashrc
-
-# Verify installations
-RUN aws --version && \
-    eksctl version && \
-    terraform -version && \
-    kubectl version --client && \
-    kubectx --help && \
-    kubens --help && \
-    helm version
+# Switch back to the non-root user for security
+USER tf-user
