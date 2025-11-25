@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+# [1.3.0](https://github.com/duyluann/terraform-aws-codepipeline/compare/v1.2.0...v1.3.0) (2025-11-25)
+
+
+### Features
+
+* New changes from template repo ([#80](https://github.com/duyluann/terraform-aws-codepipeline/issues/80)) ([0097241](https://github.com/duyluann/terraform-aws-codepipeline/commit/009724177ddc6d73d6444838b1447e3a29f95e21))
+
 # [1.2.0](https://github.com/duyluann/terraform-aws-codepipeline/compare/v1.1.0...v1.2.0) (2025-07-20)
 
 
